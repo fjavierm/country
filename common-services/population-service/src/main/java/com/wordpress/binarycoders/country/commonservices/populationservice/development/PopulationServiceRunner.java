@@ -44,8 +44,9 @@ public class PopulationServiceRunner extends ContainerRunner {
         exposedPorts.add(new ExposedPort(5432, InternetProtocol.TCP));
 
         dbConfig = new ContainerConfig()
-                .setName("postgres")
+                .setRepository("postgres")
                 .setTag("11.2")
+                .setSuffix("db")
                 .setPorts(exposedPorts);
 
         config = new EnvironmentConfig()

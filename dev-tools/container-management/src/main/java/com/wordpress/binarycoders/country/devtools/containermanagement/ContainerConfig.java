@@ -27,25 +27,26 @@ public class ContainerConfig {
 
     private static final Long DEFAULT_TIMEOUT = 30L;
 
-    private String name;
+    private String repository;
     private String tag;
+    private String suffix;
     private List<ExposedPort> ports;
-    private Long downloadTimeout;
+    private Long downloadTimeout = DEFAULT_TIMEOUT;
 
     public String getContainerName() {
-        return String.format("%s-%s-db", name, tag);
+        return String.format("%s-%s-%s", repository, tag, suffix);
     }
 
     public String getRepositoryTag() {
-        return String.format("%s:%s", name, tag);
+        return String.format("%s:%s", repository, tag);
     }
 
-    public String getName() {
-        return name;
+    public String getRepository() {
+        return repository;
     }
 
-    public ContainerConfig setName(String name) {
-        this.name = name;
+    public ContainerConfig setRepository(String repository) {
+        this.repository = repository;
         return this;
     }
 
@@ -55,6 +56,15 @@ public class ContainerConfig {
 
     public ContainerConfig setTag(String tag) {
         this.tag = tag;
+        return this;
+    }
+
+    public String getSuffix() {
+        return suffix;
+    }
+
+    public ContainerConfig setSuffix(final String suffix) {
+        this.suffix = suffix;
         return this;
     }
 
@@ -68,7 +78,7 @@ public class ContainerConfig {
     }
 
     public Long getDownloadTimeout() {
-        return downloadTimeout == null ? DEFAULT_TIMEOUT : downloadTimeout;
+        return downloadTimeout;
     }
 
     public ContainerConfig setDownloadTimeout(Long downloadTimeout) {
@@ -85,7 +95,7 @@ public class ContainerConfig {
         ContainerConfig that = (ContainerConfig) o;
 
         return new EqualsBuilder()
-                .append(name, that.name)
+                .append(repository, that.repository)
                 .append(tag, that.tag)
                 .append(ports, that.ports)
                 .append(downloadTimeout, that.downloadTimeout)
@@ -95,7 +105,7 @@ public class ContainerConfig {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(name)
+                .append(repository)
                 .append(tag)
                 .append(ports)
                 .append(downloadTimeout)
@@ -105,7 +115,7 @@ public class ContainerConfig {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .append("name", name)
+                .append("name", repository)
                 .append("tag", tag)
                 .append("ports", ports)
                 .append("downloadTimeout", downloadTimeout)
