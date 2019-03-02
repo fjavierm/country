@@ -16,62 +16,32 @@
 
 package com.wordpress.binarycoders.country.devtools.containermanagement;
 
-import com.github.dockerjava.api.model.ExposedPort;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class EnvironmentConfig {
 
-    private static final Long DEFAULT_TIMEOUT = 30L;
+    private Set<ContainerConfig> containerConfigs;
 
-    private String db;
-    private String dbTag;
-    private List<ExposedPort> containerPorts;
-    private Long dbDownloadTimeout = DEFAULT_TIMEOUT;
-
-    public String getDbContainerName() {
-        return String.format("%s-%s-db", db, dbTag);
+    public EnvironmentConfig() {
+        this.containerConfigs = new HashSet<>();
     }
 
-    public String getDbRepoTag() {
-        return String.format("%s:%s", db, dbTag);
-    }
-
-    public String getDb() {
-        return db;
-    }
-
-    public EnvironmentConfig setDb(final String db) {
-        this.db = db;
+    public EnvironmentConfig addConfig(final ContainerConfig config) {
+        this.containerConfigs.add(config);
         return this;
     }
 
-    public String getDbTag() {
-        return dbTag;
+    public Set<ContainerConfig> getContainerConfigs() {
+        return containerConfigs;
     }
 
-    public EnvironmentConfig setDbTag(final String dbTag) {
-        this.dbTag = dbTag;
-        return this;
-    }
-
-    public List<ExposedPort> getContainerPorts() {
-        return containerPorts;
-    }
-
-    public EnvironmentConfig setContainerPorts(final List<ExposedPort> containerPorts) {
-        this.containerPorts = containerPorts;
-        return this;
-    }
-
-    public Long getDbDownloadTimeout() {
-        return dbDownloadTimeout;
-    }
-
-    public EnvironmentConfig setDbDownloadTimeout(final Long dbDownloadTimeout) {
-        this.dbDownloadTimeout = dbDownloadTimeout;
+    public EnvironmentConfig setContainerConfigs(Set<ContainerConfig> containerConfigs) {
+        this.containerConfigs = containerConfigs;
         return this;
     }
 
@@ -81,23 +51,24 @@ public class EnvironmentConfig {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        final EnvironmentConfig config = (EnvironmentConfig) o;
+        final EnvironmentConfig that = (EnvironmentConfig) o;
 
         return new EqualsBuilder()
-                .append(db, config.db)
-                .append(dbTag, config.dbTag)
-                .append(containerPorts, config.containerPorts)
-                .append(dbDownloadTimeout, config.dbDownloadTimeout)
+                .append(containerConfigs, that.containerConfigs)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(db)
-                .append(dbTag)
-                .append(containerPorts)
-                .append(dbDownloadTimeout)
+                .append(containerConfigs)
                 .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("containerConfigs", containerConfigs)
+                .toString();
     }
 }

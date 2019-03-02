@@ -35,65 +35,71 @@ public class SetDevelopmentEnvironment implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(SetDevelopmentEnvironment.class);
 
-    private final EnvironmentConfig config;
+    private final EnvironmentConfig environmentConfig;
 
-    public SetDevelopmentEnvironment(final EnvironmentConfig config) {
-        this.config = config;
+    public SetDevelopmentEnvironment(final EnvironmentConfig environmentConfig) {
+        this.environmentConfig = environmentConfig;
     }
 
     public void manageContainers() throws Exception {
         final DockerClient dockerClient = DockerClientBuilder.getInstance().build();
 
-        prepareDb(dockerClient);
+        initializeContainers(dockerClient);
     }
 
-    private void prepareDb(final DockerClient dockerClient) throws InterruptedException {
-        prepareDbImage(dockerClient);
-        prepareDbContainer(dockerClient);
+    private void initializeContainers(final DockerClient dockerClient) throws InterruptedException {
+        for (ContainerConfig config : environmentConfig.getContainerConfigs()) {
+            prepareImage(dockerClient, config);
+            prepareContainer(dockerClient, config);
+        }
     }
 
-    private void prepareDbContainer(final DockerClient dockerClient) {
-        final List<Container> containers = dockerClient.listContainersCmd().exec();
+    private void prepareContainer(final DockerClient dockerClient, final ContainerConfig config) {
+        final List<Container> containers = dockerClient.listContainersCmd().withShowAll(true).exec();
+        String containerId = containers.stream().filter(c -> c.getImage().equals(config.getRepositoryTag()))
+                .findFirst().map(Container::getId).orElse(null);
 
-        if (containers.stream().noneMatch(c -> c.getImage().equals(config.getDbRepoTag()))) {
-            logger.warn("DB container not running. Starting it...");
+        if (containerId == null) {
+            logger.warn("Container not running. Starting it...");
 
-            startDbContainer(dockerClient);
+            containerId = createContainer(dockerClient, config);
         }
 
-        logger.info("DB container is prepared to be used.");
+        dockerClient.startContainerCmd(containerId).exec();
+
+        logger.info("Container is prepared to be used.");
     }
 
-    private void startDbContainer(final DockerClient dockerClient) {
-        final CreateContainerResponse container = dockerClient.createContainerCmd(config.getDbRepoTag())
-                .withName(config.getDbContainerName())
-                .withExposedPorts(config.getContainerPorts())
+    private String createContainer(final DockerClient dockerClient, final ContainerConfig config) {
+        final CreateContainerResponse container = dockerClient.createContainerCmd(config.getRepositoryTag())
+                .withName(config.getContainerName())
+                .withExposedPorts(config.getPorts())
                 .exec();
 
-        dockerClient.startContainerCmd(container.getId()).exec();
+        return container.getId();
     }
 
-    private void prepareDbImage(final DockerClient dockerClient) throws InterruptedException {
+    private void prepareImage(final DockerClient dockerClient, final ContainerConfig config) throws InterruptedException {
         final List<Image> images = dockerClient.listImagesCmd().exec();
 
-        if (images.stream().noneMatch(this::containsVersion)) {
-            logger.warn("DB image not found. Pulling it...");
+        if (images.stream().noneMatch(image -> containsVersion(image, config))) {
+            logger.warn("Image not found. Pulling it...");
 
-            pullDbImage(dockerClient);
+            pullImage(dockerClient, config);
         }
 
-        logger.info("DB image is prepared to be used.");
+        logger.info("Image is prepared to be used.");
     }
 
-    private void pullDbImage(final DockerClient dockerClient) throws InterruptedException {
-        dockerClient.pullImageCmd(config.getDb())
-                .withTag(config.getDbTag())
+    private void pullImage(final DockerClient dockerClient, final ContainerConfig config) throws InterruptedException {
+        dockerClient.pullImageCmd(config.getName())
+                .withTag(config.getTag())
                 .exec(new PullImageResultCallback())
-                .awaitCompletion(config.getDbDownloadTimeout(), TimeUnit.SECONDS);
+                .awaitCompletion(config.getDownloadTimeout(), TimeUnit.SECONDS);
     }
 
-    private boolean containsVersion(final Image image) {
-        return Arrays.asList(image.getRepoTags()).contains(config.getDbRepoTag());
+    private boolean containsVersion(final Image image, final ContainerConfig config) {
+        return Arrays.asList(image.getRepoTags()).contains(config.getRepositoryTag());
     }
 
     @Override
