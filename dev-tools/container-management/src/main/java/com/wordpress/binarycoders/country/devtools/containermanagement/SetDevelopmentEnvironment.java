@@ -35,6 +35,8 @@ public class SetDevelopmentEnvironment implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(SetDevelopmentEnvironment.class);
 
+    private static final String CONTAINER_STATE_RUNNING = "running";
+
     private final EnvironmentConfig environmentConfig;
 
     public SetDevelopmentEnvironment(final EnvironmentConfig environmentConfig) {
@@ -55,19 +57,28 @@ public class SetDevelopmentEnvironment implements Closeable {
     }
 
     private void prepareContainer(final DockerClient dockerClient, final ContainerConfig config) {
-        final List<Container> containers = dockerClient.listContainersCmd().withShowAll(true).exec();
-        String containerId = containers.stream().filter(c -> c.getImage().equals(config.getRepositoryTag()))
-                .findFirst().map(Container::getId).orElse(null);
+        final String containerId;
+        final List<Container> containersAll = dockerClient.listContainersCmd().withShowAll(true).exec();
+        final Container container = containersAll.stream().filter(c -> c.getImage().equals(config.getRepositoryTag()))
+                .findFirst().orElse(null);
 
-        if (containerId == null) {
+        if (container == null || !isContainerRunning(container)) {
             logger.warn("Container not running. Starting it...");
 
-            containerId = createContainer(dockerClient, config);
+            if (container == null) {
+                containerId = createContainer(dockerClient, config);
+            } else {
+                containerId = container.getId();
+            }
+
+            dockerClient.startContainerCmd(containerId).exec();
         }
 
-        dockerClient.startContainerCmd(containerId).exec();
-
         logger.info("Container is prepared to be used.");
+    }
+
+    private boolean isContainerRunning(final Container container) {
+        return CONTAINER_STATE_RUNNING.equals(container.getState());
     }
 
     private String createContainer(final DockerClient dockerClient, final ContainerConfig config) {
@@ -92,7 +103,7 @@ public class SetDevelopmentEnvironment implements Closeable {
     }
 
     private void pullImage(final DockerClient dockerClient, final ContainerConfig config) throws InterruptedException {
-        dockerClient.pullImageCmd(config.getName())
+        dockerClient.pullImageCmd(config.getRepository())
                 .withTag(config.getTag())
                 .exec(new PullImageResultCallback())
                 .awaitCompletion(config.getDownloadTimeout(), TimeUnit.SECONDS);
