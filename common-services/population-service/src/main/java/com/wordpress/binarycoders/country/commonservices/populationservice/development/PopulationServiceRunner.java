@@ -16,7 +16,6 @@
 
 package com.wordpress.binarycoders.country.commonservices.populationservice.development;
 
-import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.InternetProtocol;
 import com.wordpress.binarycoders.country.devtools.containermanagement.ContainerConfig;
 import com.wordpress.binarycoders.country.devtools.containermanagement.ContainerRunner;
@@ -39,15 +38,17 @@ public class PopulationServiceRunner extends ContainerRunner {
     @Override
     public void setConfig() {
         final ContainerConfig dbConfig;
-        final List<ExposedPort> exposedPorts = new ArrayList<>();
+        final List<String> environment = new ArrayList<>();
 
-        exposedPorts.add(new ExposedPort(5432, InternetProtocol.TCP));
+        environment.add("POSTGRES_USER=country");
+        environment.add("POSTGRES_PASSWORD=pa$$w0rd");
 
         dbConfig = new ContainerConfig()
                 .setRepository("postgres")
                 .setTag("11.2")
                 .setSuffix("db")
-                .setPorts(exposedPorts);
+                .setEnvironment(environment)
+                .addPort(5432, InternetProtocol.TCP);
 
         config = new EnvironmentConfig()
                 .addConfig(dbConfig);

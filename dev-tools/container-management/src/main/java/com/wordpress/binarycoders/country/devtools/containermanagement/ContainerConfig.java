@@ -17,10 +17,13 @@
 package com.wordpress.binarycoders.country.devtools.containermanagement;
 
 import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.InternetProtocol;
+import com.github.dockerjava.api.model.Ports;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ContainerConfig {
@@ -30,8 +33,25 @@ public class ContainerConfig {
     private String repository;
     private String tag;
     private String suffix;
-    private List<ExposedPort> ports;
-    private Long downloadTimeout = DEFAULT_TIMEOUT;
+    private List<ExposedPort> exposedPorts;
+    private Ports portBindings;
+    private List<String> environment;
+    private Long downloadTimeout;
+
+    public ContainerConfig() {
+        exposedPorts = new ArrayList<>();
+        portBindings = new Ports();
+        downloadTimeout = DEFAULT_TIMEOUT;
+    }
+
+    public ContainerConfig addPort(final int port, final InternetProtocol protocol) {
+        final ExposedPort exposedPort = InternetProtocol.TCP == protocol ? ExposedPort.tcp(port) : ExposedPort.udp(port);
+
+        exposedPorts.add(exposedPort);
+        portBindings.bind(exposedPort, Ports.Binding.bindPort(port));
+
+        return this;
+    }
 
     public String getContainerName() {
         return String.format("%s-%s-%s", repository, tag, suffix);
@@ -68,12 +88,30 @@ public class ContainerConfig {
         return this;
     }
 
-    public List<ExposedPort> getPorts() {
-        return ports;
+    public List<ExposedPort> getExposedPorts() {
+        return exposedPorts;
     }
 
-    public ContainerConfig setPorts(List<ExposedPort> ports) {
-        this.ports = ports;
+    public ContainerConfig setExposedPorts(List<ExposedPort> exposedPorts) {
+        this.exposedPorts = exposedPorts;
+        return this;
+    }
+
+    public Ports getPortBindings() {
+        return portBindings;
+    }
+
+    public ContainerConfig setPortBindings(final Ports portBindings) {
+        this.portBindings = portBindings;
+        return this;
+    }
+
+    public List<String> getEnvironment() {
+        return environment;
+    }
+
+    public ContainerConfig setEnvironment(final List<String> environment) {
+        this.environment = environment;
         return this;
     }
 
@@ -92,13 +130,16 @@ public class ContainerConfig {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        ContainerConfig that = (ContainerConfig) o;
+        final ContainerConfig config = (ContainerConfig) o;
 
         return new EqualsBuilder()
-                .append(repository, that.repository)
-                .append(tag, that.tag)
-                .append(ports, that.ports)
-                .append(downloadTimeout, that.downloadTimeout)
+                .append(repository, config.repository)
+                .append(tag, config.tag)
+                .append(suffix, config.suffix)
+                .append(exposedPorts, config.exposedPorts)
+                .append(portBindings, config.portBindings)
+                .append(environment, config.environment)
+                .append(downloadTimeout, config.downloadTimeout)
                 .isEquals();
     }
 
@@ -107,7 +148,10 @@ public class ContainerConfig {
         return new HashCodeBuilder(17, 37)
                 .append(repository)
                 .append(tag)
-                .append(ports)
+                .append(suffix)
+                .append(exposedPorts)
+                .append(portBindings)
+                .append(environment)
                 .append(downloadTimeout)
                 .toHashCode();
     }
@@ -115,9 +159,12 @@ public class ContainerConfig {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .append("name", repository)
+                .append("repository", repository)
                 .append("tag", tag)
-                .append("ports", ports)
+                .append("suffix", suffix)
+                .append("exposedPorts", exposedPorts)
+                .append("portBindings", portBindings)
+                .append("environment", environment)
                 .append("downloadTimeout", downloadTimeout)
                 .toString();
     }
