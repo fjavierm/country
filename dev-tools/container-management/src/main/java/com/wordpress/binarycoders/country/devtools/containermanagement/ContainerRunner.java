@@ -18,13 +18,11 @@ package com.wordpress.binarycoders.country.devtools.containermanagement;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
 
 import java.util.Arrays;
 
-public abstract class ContainerRunner implements ApplicationRunner {
+public class ContainerRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ContainerRunner.class);
 
@@ -33,13 +31,12 @@ public abstract class ContainerRunner implements ApplicationRunner {
     private final Environment environment;
     protected EnvironmentConfig config;
 
-    public ContainerRunner(final Environment environment) {
+    public ContainerRunner(final Environment environment, final EnvironmentConfig config) {
         this.environment = environment;
-        setConfig();
+        this.config = config;
     }
 
-    @Override
-    public void run(final ApplicationArguments args) throws Exception {
+    public void run() {
         if (Arrays.asList(environment.getActiveProfiles()).contains(DEV_PROFILE)) {
             logger.info("Development environment selected.");
 
@@ -52,6 +49,4 @@ public abstract class ContainerRunner implements ApplicationRunner {
             logger.debug("This is not a development environment.");
         }
     }
-
-    public abstract void setConfig();
 }
