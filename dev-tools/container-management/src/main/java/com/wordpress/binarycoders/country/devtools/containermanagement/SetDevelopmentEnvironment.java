@@ -19,6 +19,7 @@ package com.wordpress.binarycoders.country.devtools.containermanagement;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.PullImageResultCallback;
@@ -82,9 +83,12 @@ public class SetDevelopmentEnvironment implements Closeable {
     }
 
     private String createContainer(final DockerClient dockerClient, final ContainerConfig config) {
+        final HostConfig hostConfig = HostConfig.newHostConfig().withPortBindings(config.getPortBindings());
         final CreateContainerResponse container = dockerClient.createContainerCmd(config.getRepositoryTag())
                 .withName(config.getContainerName())
-                .withExposedPorts(config.getPorts())
+                .withExposedPorts(config.getExposedPorts())
+                .withHostConfig(hostConfig)
+                .withEnv(config.getEnvironment())
                 .exec();
 
         return container.getId();
