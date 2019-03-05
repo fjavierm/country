@@ -27,14 +27,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
-@Profile("development")
 public class PopulationDevelopmentConfig {
 
     private final Environment environment;
