@@ -30,6 +30,7 @@
 
     <modules>
         <module>container-management</module>
+        <module>persistence-utils</module>
     </modules>
 
 </project>
