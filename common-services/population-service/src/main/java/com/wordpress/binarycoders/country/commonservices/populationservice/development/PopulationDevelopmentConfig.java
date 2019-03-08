@@ -32,6 +32,8 @@ import org.springframework.core.env.Environment;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.wordpress.binarycoders.country.devtools.persistenceutils.DataSourceRetrier.waitForConnection;
+
 @Configuration
 public class PopulationDevelopmentConfig {
 
@@ -52,9 +54,15 @@ public class PopulationDevelopmentConfig {
     @Bean
     @Primary
     public HikariDataSource dataSource() {
+        final DataSourceProperties dataSourceProperties = dataSourceProperties();
+        final HikariDataSource dataSource = dataSourceProperties.initializeDataSourceBuilder()
+                .type(HikariDataSource.class).build();
+
         new ContainerRunner(environment, generateConfiguration()).run();
 
-        return dataSourceProperties().initializeDataSourceBuilder().type(HikariDataSource.class).build();
+        waitForConnection(dataSource, dataSourceProperties.getUrl());
+
+        return dataSource;
     }
 
     private EnvironmentConfig generateConfiguration() {

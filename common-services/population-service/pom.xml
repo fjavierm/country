@@ -34,6 +34,11 @@
             <artifactId>container-management</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.wordpress.binarycoders</groupId>
+            <artifactId>persistence-utils</artifactId>
+        </dependency>
+
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
