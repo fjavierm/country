@@ -1,6 +1,10 @@
 # country
 Learning project about Microservices, cloud, docker, Kubernetes and any crazy stuff. Let's play.
 
+![Java](https://img.shields.io/badge/jdk-11-blue.svg)
+[![Build Status](https://travis-ci.org/fjavierm/country.svg?branch=master)](https://travis-ci.org/fjavierm/country)
+[![License](https://img.shields.io/badge/License-Apache%20V2.0-orange.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+
 ## Technical information
 
 The application has active the `maven-surefire-plugin` and `maven-failsafe-plugin` plugins.
