@@ -28,3 +28,7 @@ hs_err_pid*
 
 # Java build folder
 target/
+
+# Mac OS
+.DS_Store
+**.DS_Store
