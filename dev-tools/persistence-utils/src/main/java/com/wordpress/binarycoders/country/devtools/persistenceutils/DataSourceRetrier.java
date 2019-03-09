@@ -66,13 +66,13 @@ public class DataSourceRetrier {
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
 
-                    throw new RuntimeException(ie);
+                    throw new IllegalStateException(ie);
 
                 }
                 logger.warn("Failed to connect to {} attempt number {}. Reason: {} ", jdbcUrl, attempt, e.getMessage());
             }
         }
 
-        throw new RuntimeException("Failed to connect to " + jdbcUrl + " after " + attempt + " attempts");
+        throw new IllegalStateException("Failed to connect to " + jdbcUrl + " after " + attempt + " attempts");
     }
 }

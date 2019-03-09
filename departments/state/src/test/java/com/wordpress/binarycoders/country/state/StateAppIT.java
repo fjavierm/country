@@ -16,6 +16,7 @@
 
 package com.wordpress.binarycoders.country.state;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,5 +28,6 @@ public class StateAppIT {
 
     @Test
     public void contextLoads() {
+        Assert.assertTrue(true);
     }
 }

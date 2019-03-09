@@ -17,6 +17,7 @@
 package com.wordpress.binarycoders.country.devtools.containermanagement;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.HostConfig;
@@ -44,7 +45,7 @@ public class SetDevelopmentEnvironment implements Closeable {
         this.environmentConfig = environmentConfig;
     }
 
-    public void manageContainers() throws Exception {
+    public void manageContainers() throws InterruptedException {
         final DockerClient dockerClient = DockerClientBuilder.getInstance().build();
 
         initializeContainers(dockerClient);
@@ -84,14 +85,16 @@ public class SetDevelopmentEnvironment implements Closeable {
 
     private String createContainer(final DockerClient dockerClient, final ContainerConfig config) {
         final HostConfig hostConfig = HostConfig.newHostConfig().withPortBindings(config.getPortBindings());
-        final CreateContainerResponse container = dockerClient.createContainerCmd(config.getRepositoryTag())
-                .withName(config.getContainerName())
-                .withExposedPorts(config.getExposedPorts())
-                .withHostConfig(hostConfig)
-                .withEnv(config.getEnvironment())
-                .exec();
+        try (final CreateContainerCmd containerCmd = dockerClient.createContainerCmd(config.getRepositoryTag())) {
+            final CreateContainerResponse container = containerCmd
+                    .withName(config.getContainerName())
+                    .withExposedPorts(config.getExposedPorts())
+                    .withHostConfig(hostConfig)
+                    .withEnv(config.getEnvironment())
+                    .exec();
 
-        return container.getId();
+            return container.getId();
+        }
     }
 
     private void prepareImage(final DockerClient dockerClient, final ContainerConfig config) throws InterruptedException {
@@ -119,6 +122,6 @@ public class SetDevelopmentEnvironment implements Closeable {
 
     @Override
     public void close() throws IOException {
-
+        // No need for now
     }
 }
